@@ -1,6 +1,6 @@
 package dto
 
-import userEntity "github.com/rayhan889/intern-payroll/internal/domain/user/entities"
+import userEntity "github.com/rayhan889/neatspace/internal/domain/user/entities"
 
 type (
 	CreateUser struct {

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rayhan889/intern-payroll/internal/domain/user/entities"
+	"github.com/rayhan889/neatspace/internal/domain/user/entities"
 )
 
 const UserPasswordTable = "public.user_passwords"

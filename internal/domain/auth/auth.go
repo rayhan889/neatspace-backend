@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rayhan889/intern-payroll/internal/application/services"
-	authRepo "github.com/rayhan889/intern-payroll/internal/domain/auth/repositories"
-	"github.com/rayhan889/intern-payroll/internal/notification"
+	"github.com/rayhan889/neatspace/internal/application/services"
+	authRepo "github.com/rayhan889/neatspace/internal/domain/auth/repositories"
+	"github.com/rayhan889/neatspace/internal/notification"
 )
 
 type Options struct {

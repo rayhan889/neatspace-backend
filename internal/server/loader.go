@@ -3,12 +3,12 @@ package server
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rayhan889/intern-payroll/internal/application/handler"
-	"github.com/rayhan889/intern-payroll/internal/application/middlewares"
-	"github.com/rayhan889/intern-payroll/internal/config"
-	authDomain "github.com/rayhan889/intern-payroll/internal/domain/auth"
-	userDomain "github.com/rayhan889/intern-payroll/internal/domain/user"
-	"github.com/rayhan889/intern-payroll/internal/notification"
+	"github.com/rayhan889/neatspace/internal/application/handler"
+	"github.com/rayhan889/neatspace/internal/application/middlewares"
+	"github.com/rayhan889/neatspace/internal/config"
+	authDomain "github.com/rayhan889/neatspace/internal/domain/auth"
+	userDomain "github.com/rayhan889/neatspace/internal/domain/user"
+	"github.com/rayhan889/neatspace/internal/notification"
 )
 
 // Initialize application modules : containing services, repositories, etc.

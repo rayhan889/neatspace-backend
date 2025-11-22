@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o intern-payroll ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o neatspace ./cmd/main.go
 
 FROM alpine:latest
 
@@ -17,10 +17,10 @@ WORKDIR /app
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=builder /build/intern-payroll .
+COPY --from=builder /build/neatspace .
 
 RUN mkdir -p storage && chown -R appuser:appgroup /app
 
 USER appuser
 
-CMD ["./intern-payroll", "serve"]
+CMD ["./neatspace", "serve"]

@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rayhan889/intern-payroll/internal/application/handler/dto"
-	userEntity "github.com/rayhan889/intern-payroll/internal/domain/user/entities"
-	"github.com/rayhan889/intern-payroll/pkg/apputils"
+	"github.com/rayhan889/neatspace/internal/application/handler/dto"
+	userEntity "github.com/rayhan889/neatspace/internal/domain/user/entities"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 type UserRepositoryInterface interface {

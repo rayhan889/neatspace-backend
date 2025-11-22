@@ -9,9 +9,9 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_DB: ${POSTGRES_DATABASE:-intern-payroll-db}
-      POSTGRES_USER: ${POSTGRES_USER:-intern-payroll}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-intern-payroll}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-neatspacedb}
+      POSTGRES_USER: ${POSTGRES_USER:-neatspace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-neatspace}
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d postgres" ]
       interval: 30s
@@ -52,7 +52,7 @@ services:
     environment:
       DOCKER_ENV: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
-      DATABASE_URL: postgres://${POSTGRES_USER:-intern-payroll}:${POSTGRES_PASSWORD:-intern-payroll}@postgresdb:5432/${POSTGRES_DATABASE:-intern-payroll-db}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-neatspace}:${POSTGRES_PASSWORD:-neatspace}@postgresdb:5432/${POSTGRES_DATABASE:-neatspacedb}?sslmode=disable
       REDIS_URL: redis://redis:6379
     healthcheck:
       test:

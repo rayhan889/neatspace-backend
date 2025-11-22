@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	authEntity "github.com/rayhan889/intern-payroll/internal/domain/auth/entities"
+	authEntity "github.com/rayhan889/neatspace/internal/domain/auth/entities"
 )
 
 type AuthRepositoryInterface interface {

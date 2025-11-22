@@ -13,11 +13,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/rayhan889/intern-payroll/internal/application/handler/dto"
-	authEntity "github.com/rayhan889/intern-payroll/internal/domain/auth/entities"
-	authRepo "github.com/rayhan889/intern-payroll/internal/domain/auth/repositories"
-	"github.com/rayhan889/intern-payroll/internal/notification"
-	"github.com/rayhan889/intern-payroll/pkg/apputils"
+	"github.com/rayhan889/neatspace/internal/application/handler/dto"
+	authEntity "github.com/rayhan889/neatspace/internal/domain/auth/entities"
+	authRepo "github.com/rayhan889/neatspace/internal/domain/auth/repositories"
+	"github.com/rayhan889/neatspace/internal/notification"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 type AuthServiceInterface interface {

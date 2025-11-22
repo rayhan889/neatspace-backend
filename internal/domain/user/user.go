@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rayhan889/intern-payroll/internal/application/services"
-	"github.com/rayhan889/intern-payroll/internal/domain/user/repositories"
+	"github.com/rayhan889/neatspace/internal/application/services"
+	"github.com/rayhan889/neatspace/internal/domain/user/repositories"
 )
 
 type Options struct {
