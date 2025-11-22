@@ -115,7 +115,7 @@ func (m *Mailer) SendMail(ctx context.Context, to []string, subject, templateNam
 	msg.SetHeader("To", to...)
 	msg.SetHeader("Subject", subject)
 
-	msg.SetBody("text/plain", body)
+	msg.SetBody("text/html", body)
 
 	dialer := gomail.NewDialer(m.host, m.port, m.username, m.password)
 

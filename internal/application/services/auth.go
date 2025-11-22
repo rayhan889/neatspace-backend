@@ -122,7 +122,6 @@ func (s *AuthService) EmailVerification(ctx context.Context, req *dto.EmailVerif
 		if err := s.authRepo.UpdateOneTImeTokenLastSentAt(ctx, existingToken.ID, now); err != nil {
 			return err
 		}
-		return nil
 	}
 
 	rawToken, err := apputils.GenerateURLSafeToken(48)
@@ -274,6 +273,7 @@ func (s *AuthService) sendVerificationEmail(ctx context.Context, toEmail, rawTok
 		"Email":       toEmail,
 		"DisplayName": displayName,
 		"VerifyURL":   verifyURL,
+		"AppName":     "Neatspace",
 	}
 
 	subject := "Verify your email address"
