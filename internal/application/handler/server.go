@@ -13,7 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rayhan889/intern-payroll/web"
+	"github.com/rayhan889/neatspace/web"
 )
 
 // ServerHandler holds dependencies for HTTP handlers.

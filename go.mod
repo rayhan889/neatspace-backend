@@ -1,4 +1,4 @@
-module github.com/rayhan889/intern-payroll
+module github.com/rayhan889/neatspace
 
 go 1.25.1
 

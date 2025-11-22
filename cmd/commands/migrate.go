@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rayhan889/intern-payroll/internal/config"
-	"github.com/rayhan889/intern-payroll/migrations"
+	"github.com/rayhan889/neatspace/internal/config"
+	"github.com/rayhan889/neatspace/migrations"
 	"github.com/spf13/cobra"
 )
 

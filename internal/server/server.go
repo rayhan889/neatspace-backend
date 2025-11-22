@@ -11,13 +11,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/rayhan889/intern-payroll/internal/application"
-	"github.com/rayhan889/intern-payroll/internal/application/handler"
-	"github.com/rayhan889/intern-payroll/internal/application/middlewares"
-	"github.com/rayhan889/intern-payroll/internal/config"
-	"github.com/rayhan889/intern-payroll/internal/infrasturcture/database"
-	"github.com/rayhan889/intern-payroll/internal/notification"
-	templateFS "github.com/rayhan889/intern-payroll/templates"
+	"github.com/rayhan889/neatspace/internal/application"
+	"github.com/rayhan889/neatspace/internal/application/handler"
+	"github.com/rayhan889/neatspace/internal/application/middlewares"
+	"github.com/rayhan889/neatspace/internal/config"
+	"github.com/rayhan889/neatspace/internal/infrasturcture/database"
+	"github.com/rayhan889/neatspace/internal/notification"
+	templateFS "github.com/rayhan889/neatspace/templates"
 )
 
 type HTTPServer struct {
@@ -65,7 +65,7 @@ func (s *HTTPServer) Run() error {
 	fiberApp := fiber.New(fiber.Config{
 		CaseSensitive:     true,
 		StrictRouting:     true,
-		AppName:           fmt.Sprintf("Interns Payroll Backend App %s", application.Version),
+		AppName:           fmt.Sprintf("Interns neatspace Backend App %s", application.Version),
 		EnablePrintRoutes: true,
 		ErrorHandler:      handler.Error,
 	})

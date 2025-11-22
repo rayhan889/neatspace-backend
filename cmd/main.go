@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rayhan889/intern-payroll/cmd/commands"
+	"github.com/rayhan889/neatspace/cmd/commands"
 )
 
 func main() {

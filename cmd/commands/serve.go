@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rayhan889/intern-payroll/internal/config"
-	"github.com/rayhan889/intern-payroll/internal/observer/logger"
-	"github.com/rayhan889/intern-payroll/internal/server"
+	"github.com/rayhan889/neatspace/internal/config"
+	"github.com/rayhan889/neatspace/internal/observer/logger"
+	"github.com/rayhan889/neatspace/internal/server"
 	"github.com/spf13/cobra"
 )
 

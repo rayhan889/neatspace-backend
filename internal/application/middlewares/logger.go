@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/rayhan889/intern-payroll/pkg/apputils"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 // LoggerMiddleware returns an Fiber middleware that logs HTTP requests using slog.

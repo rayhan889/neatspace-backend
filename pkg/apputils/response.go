@@ -3,7 +3,7 @@ package apputils
 import (
 	"net/http"
 
-	"github.com/rayhan889/intern-payroll/internal/application"
+	"github.com/rayhan889/neatspace/internal/application"
 )
 
 // BaseResponse defines the standard structure for API responses.

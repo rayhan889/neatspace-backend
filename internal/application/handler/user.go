@@ -5,12 +5,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/rayhan889/intern-payroll/internal/application/constants"
-	"github.com/rayhan889/intern-payroll/internal/application/handler/dto"
-	"github.com/rayhan889/intern-payroll/internal/application/middlewares"
-	"github.com/rayhan889/intern-payroll/internal/application/services"
-	"github.com/rayhan889/intern-payroll/internal/domain/user/entities"
-	"github.com/rayhan889/intern-payroll/pkg/apputils"
+	"github.com/rayhan889/neatspace/internal/application/constants"
+	"github.com/rayhan889/neatspace/internal/application/handler/dto"
+	"github.com/rayhan889/neatspace/internal/application/middlewares"
+	"github.com/rayhan889/neatspace/internal/application/services"
+	"github.com/rayhan889/neatspace/internal/domain/user/entities"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 type UserHandlerInterface interface {

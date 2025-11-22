@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/rayhan889/intern-payroll/internal/application/constants"
-	"github.com/rayhan889/intern-payroll/pkg/apputils"
+	"github.com/rayhan889/neatspace/internal/application/constants"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/rayhan889/intern-payroll/internal/config"
+	"github.com/rayhan889/neatspace/internal/config"
 )
 
 func CORSMiddleware(cfg *config.Config) fiber.Handler {

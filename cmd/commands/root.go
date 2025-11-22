@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rayhan889/intern-payroll/internal/application"
-	"github.com/rayhan889/intern-payroll/internal/config"
+	"github.com/rayhan889/neatspace/internal/application"
+	"github.com/rayhan889/neatspace/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -14,9 +14,9 @@ var argVersionShort bool
 var argVersionSemantic bool
 
 var RootCmd = &cobra.Command{
-	Use:   "payroll",
-	Short: "Intern Payroll monolith Go application",
-	Long:  "Intern Payroll monolith Go application to automatically sends bonuses to interns",
+	Use:   "neatspace",
+	Short: "A Simple Note Application",
+	Long:  "A Simple Note Application to manage and organize notes efficiently",
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
 	},
@@ -33,7 +33,7 @@ var versionCmd = &cobra.Command{
 			fmt.Printf("%s\n", application.Version)
 			return
 		} else {
-			fmt.Printf("Intern Payroll %s (%s) %s %s\n", application.Version, application.BuildHash, application.BuildDate, application.Platform)
+			fmt.Printf("Neatspace %s (%s) %s %s\n", application.Version, application.BuildHash, application.BuildDate, application.Platform)
 		}
 	},
 }
