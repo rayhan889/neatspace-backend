@@ -10,7 +10,7 @@ import (
 )
 
 type AuthHandlerInterface interface {
-	EmailVerification(c *fiber.Ctx) error
+	InitiateEmailVerification(c *fiber.Ctx) error
 }
 
 var _ AuthHandlerInterface = (*AuthHandler)(nil)
@@ -30,16 +30,32 @@ func NewAuthHandler(opts AuthHandlerOpts) {
 	}
 
 	g := opts.RouteGroup.Group("/auth")
-	g.Post("/email-verification", middlewares.ValidateRequestJSON[dto.EmailVerification](), h.EmailVerification)
+	g.Post("/verification/email/initiate", middlewares.ValidateRequestJSON[dto.InitiateEmailVerification](), h.InitiateEmailVerification)
+	g.Post("/verification/email/validate", middlewares.ValidateRequestJSON[dto.ValidateEmailVerification](), h.ValidateEmailVerification)
 }
 
-func (h *AuthHandler) EmailVerification(c *fiber.Ctx) error {
-	req := c.Locals(constants.RequestBodyJSONKey).(*dto.EmailVerification)
+func (h *AuthHandler) InitiateEmailVerification(c *fiber.Ctx) error {
+	req := c.Locals(constants.RequestBodyJSONKey).(*dto.InitiateEmailVerification)
 
-	err := h.authService.EmailVerification(c.Context(), req)
+	err := h.authService.InitiateEmailVerification(c.Context(), req)
 	if err != nil {
 		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(apputils.SuccessResponse(nil))
+	return c.Status(fiber.StatusOK).JSON(apputils.SuccessResponse(map[string]any{
+		"message": "Email verification sent successfully",
+	}))
+}
+
+func (h *AuthHandler) ValidateEmailVerification(c *fiber.Ctx) error {
+	req := c.Locals(constants.RequestBodyJSONKey).(*dto.ValidateEmailVerification)
+
+	err := h.authService.ValidateEmailVerification(c.Context(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(apputils.SuccessResponse(map[string]any{
+		"message": "Email verified successfully",
+	}))
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -18,6 +19,7 @@ type UserServiceInterface interface {
 	PaginationUser(c *fiber.Ctx, p *apputils.Pagination) (data []dto.UserPagination, total int, err error)
 	CreateUser(ctx context.Context, user *entities.UserEntity) error
 	GetUserByEmail(ctx context.Context, email string) (*entities.UserEntity, error)
+	MarkEmailVerified(ctx context.Context, userID uuid.UUID) error
 }
 
 var _ UserServiceInterface = (*UserService)(nil)
@@ -86,4 +88,14 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*entiti
 	}
 
 	return user, nil
+}
+
+func (s *UserService) MarkEmailVerified(ctx context.Context, userID uuid.UUID) error {
+	now := time.Now()
+	err := s.userRepo.UpdateUserEmailVerifiedAt(ctx, userID, now)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error updating email verified: %v", err))
+	}
+
+	return nil
 }

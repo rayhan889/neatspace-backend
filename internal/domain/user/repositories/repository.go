@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rayhan889/neatspace/internal/application/handler/dto"
@@ -21,6 +23,7 @@ type UserRepositoryInterface interface {
 	EmailExists(ctx context.Context, email string) (bool, error)
 	UsernameExists(ctx context.Context, username string) (bool, error)
 	GetUserByEmail(ctx context.Context, email string) (*userEntity.UserEntity, error)
+	UpdateUserEmailVerifiedAt(ctx context.Context, userID uuid.UUID, now time.Time) error
 }
 
 var _ UserRepositoryInterface = (*UserRepository)(nil)
@@ -206,6 +209,19 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*use
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) UpdateUserEmailVerifiedAt(ctx context.Context, userID uuid.UUID, now time.Time) error {
+	query := fmt.Sprintf(`UPDATE %s SET email_verified_at = $1, updated_at = $2 WHERE id = $3`, userEntity.UserTable)
+
+	_, err := r.pgPool.Exec(ctx, query, now, now, userID)
+	if err != nil {
+		r.logger.Error("failed to update user email verified at", slog.String("op", "UpdateUserEmailVerifiedAt"), slog.String("error", err.Error()))
+		return err
+	}
+
+	r.logger.Info("user email verified at updated", slog.String("op", "UpdateUserEmailVerifiedAt"), slog.String("user_id", userID.String()))
+	return nil
 }
 
 func (r *UserRepository) queryFilter(c *fiber.Ctx, baseQuery string) (string, []interface{}) {

@@ -65,7 +65,7 @@ func (s *HTTPServer) Run() error {
 	fiberApp := fiber.New(fiber.Config{
 		CaseSensitive:     true,
 		StrictRouting:     true,
-		AppName:           fmt.Sprintf("Interns neatspace Backend App %s", application.Version),
+		AppName:           fmt.Sprintf("Neatspace Backend App %s", application.Version),
 		EnablePrintRoutes: true,
 		ErrorHandler:      handler.Error,
 	})

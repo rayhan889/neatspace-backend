@@ -21,7 +21,8 @@ import (
 )
 
 type AuthServiceInterface interface {
-	EmailVerification(ctx context.Context, req *dto.EmailVerification) error
+	InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerification) error
+	ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerification) error
 }
 
 var _ AuthServiceInterface = (*AuthService)(nil)
@@ -86,7 +87,7 @@ func NewAuthService(opts AuthServiceOpts) *AuthService {
 	}
 }
 
-func (s *AuthService) EmailVerification(ctx context.Context, req *dto.EmailVerification) error {
+func (s *AuthService) InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerification) error {
 	user, err := s.userService.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return err
@@ -122,7 +123,6 @@ func (s *AuthService) EmailVerification(ctx context.Context, req *dto.EmailVerif
 		if err := s.authRepo.UpdateOneTImeTokenLastSentAt(ctx, existingToken.ID, now); err != nil {
 			return err
 		}
-		return nil
 	}
 
 	rawToken, err := apputils.GenerateURLSafeToken(48)
@@ -164,6 +164,37 @@ func (s *AuthService) EmailVerification(ctx context.Context, req *dto.EmailVerif
 	}
 
 	if err := s.sendVerificationEmail(ctx, email, rawToken, req.RedirectTo); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *AuthService) ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerification) error {
+	hash := sha256.Sum256([]byte(req.Token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	oneTimeToken, err := s.authRepo.GetOneTimeTokenByTokenHash(ctx, tokenHash)
+	if err != nil {
+		return err
+	}
+
+	if oneTimeToken == nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "one time token is not found")
+	}
+
+	if oneTimeToken.ExpiresAt.Before(time.Now()) {
+		return fiber.NewError(fiber.StatusUnauthorized, "one time token is expired")
+	}
+
+	if oneTimeToken.UserID == nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "token is not related to any user")
+	}
+	userID := *oneTimeToken.UserID
+
+	_ = s.authRepo.DeleteOneTimeToken(ctx, oneTimeToken.ID)
+
+	if err = s.userService.MarkEmailVerified(ctx, userID); err != nil {
 		return err
 	}
 
@@ -274,6 +305,7 @@ func (s *AuthService) sendVerificationEmail(ctx context.Context, toEmail, rawTok
 		"Email":       toEmail,
 		"DisplayName": displayName,
 		"VerifyURL":   verifyURL,
+		"AppName":     "Neatspace",
 	}
 
 	subject := "Verify your email address"

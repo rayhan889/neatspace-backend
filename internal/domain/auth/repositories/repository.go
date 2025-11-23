@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	authEntity "github.com/rayhan889/neatspace/internal/domain/auth/entities"
 )
@@ -16,6 +17,7 @@ type AuthRepositoryInterface interface {
 	CreateOneTimeToken(ctx context.Context, token *authEntity.OneTimeToken) error
 	UpdateOneTImeTokenLastSentAt(ctx context.Context, tokenID uuid.UUID, lastSentAt time.Time) error
 	DeleteOneTimeToken(ctx context.Context, tokenID uuid.UUID) error
+	GetOneTimeTokenByTokenHash(ctx context.Context, tokenHash string) (*authEntity.OneTimeToken, error)
 }
 
 var _ AuthRepositoryInterface = (*AuthRepository)(nil)
@@ -124,4 +126,30 @@ func (r *AuthRepository) DeleteOneTimeToken(ctx context.Context, tokenID uuid.UU
 
 	r.logger.Info("one-time token deleted", slog.String("op", "DeleteOneTimeToken"), slog.String("token_id", tokenID.String()))
 	return nil
+}
+
+func (r *AuthRepository) GetOneTimeTokenByTokenHash(ctx context.Context, tokenHash string) (*authEntity.OneTimeToken, error) {
+	var oneTimeToken authEntity.OneTimeToken
+	query := fmt.Sprintf(`SELECT id, user_id, subject, relates_to, metadata, expires_at, last_sent_at FROM %s WHERE token_hash = $1`, authEntity.OneTimeTokenTable)
+
+	row := r.pgPool.QueryRow(ctx, query, tokenHash)
+
+	err := row.Scan(
+		&oneTimeToken.ID,
+		&oneTimeToken.UserID,
+		&oneTimeToken.Subject,
+		&oneTimeToken.RelatesTo,
+		&oneTimeToken.Metadata,
+		&oneTimeToken.ExpiresAt,
+		&oneTimeToken.LastSentAt,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		r.logger.Error("failed to get one time token by token hahs", slog.String("op", "GetOneTimeTokenByTokenHash"), slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &oneTimeToken, nil
 }
