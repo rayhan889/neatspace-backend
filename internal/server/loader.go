@@ -27,13 +27,12 @@ func (s *HTTPServer) initializeApplication(cfg *config.Config, pgPool *pgxpool.P
 		Logger: s.logger,
 	})
 	authDomain := authDomain.NewAuthDomain(&authDomain.Options{
-		PgPool:      pgPool,
-		UserService: userDomain.GetUserService(),
-		Logger:      s.logger,
-		Mailer:      mailer,
-		BaseURL:     cfg.GetAppBaseURL(),
-		Port:        cfg.GetPort(),
-		Host:        cfg.GetHost(),
+		PgPool:       pgPool,
+		UserService:  userDomain.GetUserService(),
+		Logger:       s.logger,
+		Mailer:       mailer,
+		BaseURL:      cfg.GetAppBaseURL(),
+		JWTSecretKey: []byte(cfg.App.JWTSecretKey),
 	})
 
 	handler.NewAuthHandler(handler.AuthHandlerOpts{
