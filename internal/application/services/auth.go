@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/rayhan889/neatspace/internal/application/handler/dto"
 	authEntity "github.com/rayhan889/neatspace/internal/domain/auth/entities"
 	authRepo "github.com/rayhan889/neatspace/internal/domain/auth/repositories"
@@ -20,9 +22,14 @@ import (
 	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
+var ErrInvalidCredentials = fiber.NewError(fiber.StatusUnauthorized, "invalid credentials")
+
 type AuthServiceInterface interface {
 	InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerification) error
 	ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerification) error
+	SignInWithEmail(ctx context.Context, req *dto.SignInWithEmail) (*authEntity.AuthenticatedUser, error)
+	CreateSession(ctx context.Context, session *authEntity.SessionEntity) error
+	CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error
 }
 
 var _ AuthServiceInterface = (*AuthService)(nil)
@@ -33,8 +40,11 @@ type AuthService struct {
 	logger      *slog.Logger
 	mailer      *notification.Mailer
 	baseURL     string
-	port        int
-	host        string
+
+	secretKey          []byte                 // Secret key for signing JWTs
+	accessTokenExpiry  time.Duration          // Access token expiration duration
+	refreshTokenExpiry time.Duration          // Refresh token expiration duration
+	signingAlg         jwa.SignatureAlgorithm // Signing algorithm (default: HS256)
 }
 
 type AuthServiceOpts struct {
@@ -43,47 +53,24 @@ type AuthServiceOpts struct {
 	Logger         *slog.Logger
 	Mailer         *notification.Mailer
 	BaseURL        string
-	Port           int
-	Host           string
+
+	JWTSecretKey       []byte                 // Secret key for signing JWTs
+	AccessTokenExpiry  time.Duration          // Access token expiration duration
+	RefreshTokenExpiry time.Duration          // Refresh token expiration duration
+	SigningAlg         jwa.SignatureAlgorithm // Signing algorithm (default: HS256)
 }
 
 func NewAuthService(opts AuthServiceOpts) *AuthService {
-	if opts.AuthRepository == nil {
-		panic("auth repo is required")
-	}
-
-	if opts.UserService == nil {
-		panic("user service is required")
-	}
-
-	if opts.Logger == nil {
-		panic("logger is required")
-	}
-
-	if opts.Mailer == nil {
-		panic("mailer is required")
-	}
-
-	if opts.BaseURL == "" {
-		panic("base URL is required")
-	}
-
-	if opts.Port == 0 {
-		panic("port is required")
-	}
-
-	if opts.Host == "" {
-		panic("host is required")
-	}
-
 	return &AuthService{
-		authRepo:    opts.AuthRepository,
-		userService: opts.UserService,
-		logger:      opts.Logger,
-		mailer:      opts.Mailer,
-		baseURL:     opts.BaseURL,
-		port:        opts.Port,
-		host:        opts.Host,
+		authRepo:           opts.AuthRepository,
+		userService:        opts.UserService,
+		logger:             opts.Logger,
+		mailer:             opts.Mailer,
+		baseURL:            opts.BaseURL,
+		secretKey:          opts.JWTSecretKey,
+		accessTokenExpiry:  opts.AccessTokenExpiry,
+		refreshTokenExpiry: opts.RefreshTokenExpiry,
+		signingAlg:         opts.SigningAlg,
 	}
 }
 
@@ -199,6 +186,144 @@ func (s *AuthService) ValidateEmailVerification(ctx context.Context, req *dto.Va
 	}
 
 	return nil
+}
+
+func (s *AuthService) CreateSession(ctx context.Context, session *authEntity.SessionEntity) error {
+	if session == nil {
+		return errors.New("session is required")
+	}
+	if session.UserID == uuid.Nil {
+		return errors.New("user_id is required")
+	}
+	if session.TokenHash == "" {
+		return errors.New("token_hash is required")
+	}
+	if session.ExpiresAt.IsZero() || session.ExpiresAt.Before(time.Now()) {
+		return errors.New("expires_at must be set and in the future")
+	}
+
+	return s.authRepo.CreateSession(ctx, session)
+}
+
+func (s *AuthService) CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error {
+	if refreshToken == nil {
+		return errors.New("refresh token is required")
+	}
+	if refreshToken.UserID == uuid.Nil {
+		return errors.New("user_id is required")
+	}
+	if len(refreshToken.TokenHash) == 0 {
+		return errors.New("token_hash is required")
+	}
+	if refreshToken.ExpiresAt.IsZero() || refreshToken.ExpiresAt.Before(time.Now()) {
+		return errors.New("expires_at must be set and in the future")
+	}
+
+	return s.authRepo.CreateRefreshToken(ctx, refreshToken)
+}
+
+func (s *AuthService) SignInWithEmail(ctx context.Context, req *dto.SignInWithEmail) (*authEntity.AuthenticatedUser, error) {
+	if req.Email == "" || req.Password == "" {
+		return nil, ErrInvalidCredentials
+	}
+
+	user, err := s.userService.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	ok, err := s.validatePassword(ctx, user.ID, req.Password)
+	if err != nil || !ok {
+		return nil, ErrInvalidCredentials
+	}
+
+	if !s.isEmailVerified(user) {
+		return nil, ErrInvalidCredentials
+	}
+
+	jwtGen := apputils.NewJWTGenerator(apputils.JWTConfig{
+		SecretKey:          s.secretKey,
+		AccessTokenExpiry:  s.accessTokenExpiry,
+		RefreshTokenExpiry: s.refreshTokenExpiry,
+		SigninAlgo:         s.signingAlg,
+		Issuer:             s.baseURL,
+	})
+
+	audience := "client-app"
+	if md, ok := ctx.Value("headers").(map[string]string); ok {
+		if aud, exists := md["X-App-Audience"]; exists && aud != "" {
+			audience = aud
+		}
+	}
+
+	refreshTokenUUID, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+	refreshTokenStr, err := jwtGen.GenerateRefreshTokenJWT(ctx, user.ID.String(), audience, refreshTokenUUID.String())
+	if err != nil {
+		return nil, err
+	}
+	refreshTokenHash := jwtGen.GetHash(refreshTokenStr)
+
+	session := &authEntity.SessionEntity{
+		ID:        uuid.New(),
+		UserID:    user.GetID(),
+		TokenHash: refreshTokenHash,
+		ExpiresAt: time.Now().Add(jwtGen.AccessTokenExpiry()),
+	}
+	if err := s.CreateSession(ctx, session); err != nil {
+		return nil, err
+	}
+
+	accessTokenPayload := dto.AccessTokenPayload{
+		UserID: user.ID.String(),
+		Email:  user.Email,
+		SID:    session.ID.String(),
+	}
+	accessToken, err := jwtGen.Sign(ctx, accessTokenPayload, user.GetID().String())
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken := &authEntity.RefreshToken{
+		ID:        refreshTokenUUID,
+		UserID:    user.GetID(),
+		SessionID: &session.ID,
+		TokenHash: []byte(refreshTokenHash),
+		ExpiresAt: time.Now().Add(jwtGen.RefreshTokenExpiry()),
+	}
+	if err := s.CreateRefreshToken(ctx, refreshToken); err != nil {
+		return nil, err
+	}
+
+	authUser := &authEntity.AuthenticatedUser{
+		UserWithCredentials: authEntity.UserWithCredentials{
+			User:         user.AsUserModel(),
+			AccessToken:  accessToken,
+			RefreshToken: refreshTokenStr,
+		},
+		SessionID:   &session.ID,
+		TokenExpiry: session.ExpiresAt,
+	}
+
+	return authUser, nil
+}
+
+func (s *AuthService) validatePassword(ctx context.Context, userID uuid.UUID, password string) (bool, error) {
+	userPassword, err := s.authRepo.GetUserPasswordByUserID(ctx, userID)
+	if err != nil {
+		return false, fmt.Errorf("error getting user password %w", err)
+	}
+	if userPassword == nil {
+		return false, fmt.Errorf("cannot find match user password by user id %s", userID)
+	}
+
+	hasher := apputils.NewPasswordHasher()
+	return hasher.Validate(password, userPassword.PasswordHash)
 }
 
 func (s *AuthService) isEmailVerified(u any) bool {
