@@ -21,6 +21,7 @@ type AuthRepositoryInterface interface {
 	GetUserPasswordByUserID(ctx context.Context, userID uuid.UUID) (*authEntity.UserPasswordEntity, error)
 	CreateSession(ctx context.Context, session *authEntity.SessionEntity) error
 	CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error
+	CreateUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error
 }
 
 var _ AuthRepositoryInterface = (*AuthRepository)(nil)
@@ -226,5 +227,21 @@ func (r *AuthRepository) CreateRefreshToken(ctx context.Context, refreshToken *a
 	}
 
 	r.logger.Info("refresh token created", slog.String("op", "CreateRefreshToken"), slog.String("refresh_token_id", refreshToken.ID.String()))
+	return nil
+}
+
+func (r *AuthRepository) CreateUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error {
+	_, err := r.pgPool.Exec(ctx, fmt.Sprintf(`INSERT INTO %s (user_id, password_hash, created_at) 
+	VALUES ($1, $2, $3)`, authEntity.UserPasswordTable),
+		userPassword.UserID,
+		userPassword.PasswordHash,
+		userPassword.CreatedAt,
+	)
+	if err != nil {
+		r.logger.Error("failed to create user password", slog.String("op", "CreateUserPassword"), slog.String("error", err.Error()))
+		return err
+	}
+
+	r.logger.Info("user password created", slog.String("op", "CreateUserPassword"), slog.String("user_id", userPassword.UserID.String()))
 	return nil
 }

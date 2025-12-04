@@ -25,11 +25,12 @@ import (
 var ErrInvalidCredentials = fiber.NewError(fiber.StatusUnauthorized, "invalid credentials")
 
 type AuthServiceInterface interface {
-	InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerification) error
-	ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerification) error
-	SignInWithEmail(ctx context.Context, req *dto.SignInWithEmail) (*authEntity.AuthenticatedUser, error)
+	InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerificationRequest) error
+	ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerificationRequest) error
+	SignInWithEmail(ctx context.Context, req *dto.SignInWithEmailRequest) (*authEntity.AuthenticatedUser, error)
 	CreateSession(ctx context.Context, session *authEntity.SessionEntity) error
 	CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error
+	SetUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error
 }
 
 var _ AuthServiceInterface = (*AuthService)(nil)
@@ -74,7 +75,7 @@ func NewAuthService(opts AuthServiceOpts) *AuthService {
 	}
 }
 
-func (s *AuthService) InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerification) error {
+func (s *AuthService) InitiateEmailVerification(ctx context.Context, req *dto.InitiateEmailVerificationRequest) error {
 	user, err := s.userService.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return err
@@ -157,7 +158,7 @@ func (s *AuthService) InitiateEmailVerification(ctx context.Context, req *dto.In
 	return nil
 }
 
-func (s *AuthService) ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerification) error {
+func (s *AuthService) ValidateEmailVerification(ctx context.Context, req *dto.ValidateEmailVerificationRequest) error {
 	hash := sha256.Sum256([]byte(req.Token))
 	tokenHash := hex.EncodeToString(hash[:])
 
@@ -222,7 +223,7 @@ func (s *AuthService) CreateRefreshToken(ctx context.Context, refreshToken *auth
 	return s.authRepo.CreateRefreshToken(ctx, refreshToken)
 }
 
-func (s *AuthService) SignInWithEmail(ctx context.Context, req *dto.SignInWithEmail) (*authEntity.AuthenticatedUser, error) {
+func (s *AuthService) SignInWithEmail(ctx context.Context, req *dto.SignInWithEmailRequest) (*authEntity.AuthenticatedUser, error) {
 	if req.Email == "" || req.Password == "" {
 		return nil, ErrInvalidCredentials
 	}
@@ -313,6 +314,25 @@ func (s *AuthService) SignInWithEmail(ctx context.Context, req *dto.SignInWithEm
 	return authUser, nil
 }
 
+func (s *AuthService) SetUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error {
+	if len(userPassword.PasswordHash) == 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "password can't be empty")
+	}
+
+	if !s.userService.IsUserExistsByID(ctx, userPassword.UserID) {
+		return fiber.NewError(fiber.StatusNotFound, fmt.Sprintf("user with id %s cannot be fount", userPassword.UserID.String()))
+	}
+
+	hasher := apputils.NewPasswordHasher()
+	hashed, err := hasher.Hash(string(userPassword.PasswordHash))
+	if err != nil {
+		return err
+	}
+	userPassword.PasswordHash = []byte(hashed)
+
+	return s.authRepo.CreateUserPassword(ctx, userPassword)
+}
+
 func (s *AuthService) validatePassword(ctx context.Context, userID uuid.UUID, password string) (bool, error) {
 	userPassword, err := s.authRepo.GetUserPasswordByUserID(ctx, userID)
 	if err != nil {
@@ -323,7 +343,7 @@ func (s *AuthService) validatePassword(ctx context.Context, userID uuid.UUID, pa
 	}
 
 	hasher := apputils.NewPasswordHasher()
-	return hasher.Validate(password, userPassword.PasswordHash)
+	return hasher.Validate(password, string(userPassword.PasswordHash))
 }
 
 func (s *AuthService) isEmailVerified(u any) bool {
