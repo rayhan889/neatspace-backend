@@ -27,7 +27,9 @@ type Options struct {
 }
 
 type AuthDomain struct {
-	authService *services.AuthService
+	authService  *services.AuthService
+	jwtSecretKey []byte
+	signingAlgo  jwa.SignatureAlgorithm
 }
 
 func NewAuthDomain(opts *Options) *AuthDomain {
@@ -53,12 +55,22 @@ func NewAuthDomain(opts *Options) *AuthDomain {
 	})
 
 	return &AuthDomain{
-		authService: authService,
+		authService:  authService,
+		jwtSecretKey: opts.JWTSecretKey,
+		signingAlgo:  opts.SigningAlg,
 	}
 }
 
 func (d *AuthDomain) GetAuthService() *services.AuthService {
 	return d.authService
+}
+
+func (d *AuthDomain) GetJWTSecretKey() []byte {
+	return d.jwtSecretKey
+}
+
+func (d *AuthDomain) GetSigningAlgo() jwa.SignatureAlgorithm {
+	return d.signingAlgo
 }
 
 func (opts *Options) validateAndSetDefaults() error {

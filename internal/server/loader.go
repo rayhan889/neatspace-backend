@@ -36,8 +36,10 @@ func (s *HTTPServer) initializeApplication(cfg *config.Config, pgPool *pgxpool.P
 	})
 
 	handler.NewAuthHandler(handler.AuthHandlerOpts{
-		RouteGroup:  apiV1Route,
-		AuthService: authDomain.GetAuthService(),
+		RouteGroup:   apiV1Route,
+		AuthService:  authDomain.GetAuthService(),
+		JWTSecretKey: authDomain.GetJWTSecretKey(),
+		SigningAlg:   authDomain.GetSigningAlgo(),
 	})
 	handler.NewUserHandler(handler.UserHandlerOpts{
 		RouteGroup:  apiV1Route,

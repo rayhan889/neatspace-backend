@@ -24,6 +24,7 @@ type UserRepositoryInterface interface {
 	UsernameExists(ctx context.Context, username string) (bool, error)
 	GetUserByEmail(ctx context.Context, email string) (*userEntity.UserEntity, error)
 	UpdateUserEmailVerifiedAt(ctx context.Context, userID uuid.UUID, now time.Time) error
+	IsUserExistsByID(ctx context.Context, userID uuid.UUID) bool
 }
 
 var _ UserRepositoryInterface = (*UserRepository)(nil)
@@ -222,6 +223,19 @@ func (r *UserRepository) UpdateUserEmailVerifiedAt(ctx context.Context, userID u
 
 	r.logger.Info("user email verified at updated", slog.String("op", "UpdateUserEmailVerifiedAt"), slog.String("user_id", userID.String()))
 	return nil
+}
+
+func (r *UserRepository) IsUserExistsByID(ctx context.Context, userID uuid.UUID) bool {
+	query := fmt.Sprintf(`SELECT EXISTS(SELECT 1 FROM %s WHERE id = $1)`, userEntity.UserTable)
+
+	var exists bool
+	err := r.pgPool.QueryRow(ctx, query, userID).Scan(&exists)
+	if err != nil {
+		r.logger.Error("failed to check user existence", slog.String("op", "IsUserExistsByID"), slog.String("error", err.Error()))
+		return false
+	}
+
+	return exists
 }
 
 func (r *UserRepository) queryFilter(c *fiber.Ctx, baseQuery string) (string, []interface{}) {

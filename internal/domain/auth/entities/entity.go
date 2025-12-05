@@ -12,7 +12,7 @@ const UserPasswordTable = "public.user_passwords"
 
 type UserPasswordEntity struct {
 	UserID       uuid.UUID  `json:"user_id" db:"user_id"`
-	PasswordHash string     `json:"password_hash" db:"password_hash"`
+	PasswordHash []byte     `json:"password_hash" db:"password_hash"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt    *time.Time `json:"updated_at" db:"updated_at"`
 }

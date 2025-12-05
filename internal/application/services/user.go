@@ -20,6 +20,7 @@ type UserServiceInterface interface {
 	CreateUser(ctx context.Context, user *entities.UserEntity) error
 	GetUserByEmail(ctx context.Context, email string) (*entities.UserEntity, error)
 	MarkEmailVerified(ctx context.Context, userID uuid.UUID) error
+	IsUserExistsByID(ctx context.Context, userID uuid.UUID) bool
 }
 
 var _ UserServiceInterface = (*UserService)(nil)
@@ -98,4 +99,8 @@ func (s *UserService) MarkEmailVerified(ctx context.Context, userID uuid.UUID) e
 	}
 
 	return nil
+}
+
+func (s *UserService) IsUserExistsByID(ctx context.Context, userID uuid.UUID) bool {
+	return s.userRepo.IsUserExistsByID(ctx, userID)
 }
