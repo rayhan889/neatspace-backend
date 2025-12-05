@@ -18,6 +18,7 @@ type AuthHandlerInterface interface {
 	ValidateEmailVerification(c *fiber.Ctx) error
 	SignInWithEmail(c *fiber.Ctx) error
 	SetUserPassword(c *fiber.Ctx) error
+	UpdateUserPassword(c *fiber.Ctx) error
 }
 
 var _ AuthHandlerInterface = (*AuthHandler)(nil)
@@ -45,6 +46,7 @@ func NewAuthHandler(opts AuthHandlerOpts) {
 
 	privateGroup := publicGroup.Group("", middlewares.JWTMiddleware(opts.JWTSecretKey, opts.SigningAlg))
 	privateGroup.Post("/password", middlewares.ValidateRequestJSON[dto.SetUserPasswordRequest](), h.SetUserPassword)
+	privateGroup.Patch("/password/:userId", middlewares.ValidateRequestJSON[dto.UpdatePasswordRequest](), h.UpdateUserPassword)
 }
 
 func (h *AuthHandler) InitiateEmailVerification(c *fiber.Ctx) error {
@@ -104,5 +106,21 @@ func (h *AuthHandler) SetUserPassword(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(apputils.SuccessResponse(map[string]any{
 		"message": "Successfully set user password",
+	}))
+}
+
+func (h *AuthHandler) UpdateUserPassword(c *fiber.Ctx) error {
+	req := c.Locals(constants.RequestBodyJSONKey).(*dto.UpdatePasswordRequest)
+
+	userID := c.Params("userId")
+	userUUID := apputils.UUIDChecker(userID)
+
+	err := h.authService.UpdateUserPassword(c.Context(), req.Password, userUUID)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(apputils.SuccessResponse(map[string]any{
+		"message": "Successfully update user password",
 	}))
 }

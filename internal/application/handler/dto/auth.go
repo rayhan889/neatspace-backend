@@ -22,4 +22,8 @@ type (
 		Password             string `json:"password" validate:"required,min=8" example:"secure.password"`
 		PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password" example:"secret.password"`
 	}
+	UpdatePasswordRequest struct {
+		Password             string `json:"password" validate:"required,min=8" example:"secure.password"`
+		PasswordConfirmation string `json:"password_confirmation" validate:"required,eqfield=Password" example:"secret.password"`
+	}
 )

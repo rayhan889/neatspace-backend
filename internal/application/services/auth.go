@@ -31,6 +31,7 @@ type AuthServiceInterface interface {
 	CreateSession(ctx context.Context, session *authEntity.SessionEntity) error
 	CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error
 	SetUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error
+	UpdateUserPassword(ctx context.Context, password string, userID uuid.UUID) error
 }
 
 var _ AuthServiceInterface = (*AuthService)(nil)
@@ -320,7 +321,7 @@ func (s *AuthService) SetUserPassword(ctx context.Context, userPassword *authEnt
 	}
 
 	if !s.userService.IsUserExistsByID(ctx, userPassword.UserID) {
-		return fiber.NewError(fiber.StatusNotFound, fmt.Sprintf("user with id %s cannot be fount", userPassword.UserID.String()))
+		return fiber.NewError(fiber.StatusNotFound, fmt.Sprintf("user with id %s cannot be found", userPassword.UserID.String()))
 	}
 
 	hasher := apputils.NewPasswordHasher()
@@ -331,6 +332,20 @@ func (s *AuthService) SetUserPassword(ctx context.Context, userPassword *authEnt
 	userPassword.PasswordHash = []byte(hashed)
 
 	return s.authRepo.CreateUserPassword(ctx, userPassword)
+}
+
+func (s *AuthService) UpdateUserPassword(ctx context.Context, password string, userID uuid.UUID) error {
+	if password == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "password can't be empty")
+	}
+
+	hasher := apputils.NewPasswordHasher()
+	hashed, err := hasher.Hash(password)
+	if err != nil {
+		return err
+	}
+
+	return s.authRepo.UpdateUserPassword(ctx, []byte(hashed), userID)
 }
 
 func (s *AuthService) validatePassword(ctx context.Context, userID uuid.UUID, password string) (bool, error) {
