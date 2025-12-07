@@ -50,7 +50,7 @@ func (j *JWTGenerator) Sign(ctx context.Context, payload any, subject string) (s
 	now := time.Now()
 	_ = token.Set(jwt.IssuerKey, j.config.Issuer)
 	_ = token.Set(jwt.IssuedAtKey, now)
-	_ = token.Set(jwt.ExpirationKey, j.config.AccessTokenExpiry)
+	_ = token.Set(jwt.ExpirationKey, now.Add(j.config.AccessTokenExpiry))
 	_ = token.Set("typ", "access")
 	if subject != "" {
 		_ = token.Set(jwt.SubjectKey, subject)
