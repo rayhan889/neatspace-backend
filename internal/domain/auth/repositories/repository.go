@@ -22,6 +22,7 @@ type AuthRepositoryInterface interface {
 	CreateSession(ctx context.Context, session *authEntity.SessionEntity) error
 	CreateRefreshToken(ctx context.Context, refreshToken *authEntity.RefreshToken) error
 	CreateUserPassword(ctx context.Context, userPassword *authEntity.UserPasswordEntity) error
+	UpdateUserPassword(ctx context.Context, newPasswordHash []byte, userID uuid.UUID) error
 }
 
 var _ AuthRepositoryInterface = (*AuthRepository)(nil)
@@ -243,5 +244,23 @@ func (r *AuthRepository) CreateUserPassword(ctx context.Context, userPassword *a
 	}
 
 	r.logger.Info("user password created", slog.String("op", "CreateUserPassword"), slog.String("user_id", userPassword.UserID.String()))
+	return nil
+}
+
+func (r *AuthRepository) UpdateUserPassword(ctx context.Context, newPasswordHash []byte, userID uuid.UUID) error {
+	query := fmt.Sprintf("UPDATE %s SET password_hash = $1, updated_at = $2 WHERE user_id = $3", authEntity.UserPasswordTable)
+
+	now := time.Now()
+	cmd, err := r.pgPool.Exec(ctx, query, newPasswordHash, now, userID)
+	if err != nil {
+		r.logger.Error("failed to update user password", slog.String("op", "UpdateUserPassword"), slog.String("error", err.Error()))
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		r.logger.Warn("no user password found to update", slog.String("op", "UpdateUserPassword"), slog.String("user_id", userID.String()))
+		return fmt.Errorf("no user password found with user_id: %s", userID.String())
+	}
+
+	r.logger.Info("user password updated", slog.String("op", "UpdateUserPassword"), slog.String("user_id", userID.String()))
 	return nil
 }
