@@ -16,11 +16,11 @@ func SecurityHeadersMiddleware() fiber.Handler {
 		// Content-Security-Policy - allow scripts from self and trusted CDN
 		c.Response().Header.Set("Content-Security-Policy",
 			"default-src 'none'; "+
-				"script-src 'self' https://cdn.jsdelivr.net; "+
-				"script-src-elem 'self' https://cdn.jsdelivr.net; "+
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "+
+				"script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "+
 				"style-src 'self' 'unsafe-inline'; "+
 				"img-src 'self' data:; "+
-				"font-src 'self'; "+
+				"font-src 'self' https://fonts.scalar.com; "+
 				"connect-src 'self'; "+
 				"frame-ancestors 'none'")
 

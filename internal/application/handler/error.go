@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rayhan889/neatspace/pkg/apputils"
 )
 
 func Error(c *fiber.Ctx, err error) error {
@@ -16,9 +17,6 @@ func Error(c *fiber.Ctx, err error) error {
 		code = e.Code
 	}
 
-	// Set Content-Type: text/plain; charset=utf-8
-	c.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
-
-	// Return status code with error message
-	return c.Status(code).SendString(err.Error())
+	// Return JSON response using BaseResponse format
+	return c.Status(code).JSON(apputils.ErrorResponse(code, err.Error(), ""))
 }

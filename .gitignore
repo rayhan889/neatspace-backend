@@ -1,2 +1,9 @@
 .env*
 !.env.example
+build/
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
+release/
+temp/
+tmp/

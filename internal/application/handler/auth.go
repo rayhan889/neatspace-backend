@@ -49,6 +49,18 @@ func NewAuthHandler(opts AuthHandlerOpts) {
 	privateGroup.Patch("/password/:userId", middlewares.ValidateRequestJSON[dto.UpdatePasswordRequest](), h.UpdateUserPassword)
 }
 
+// InitiateEmailVerification godoc
+// @Summary		Initiate Email Verification
+// @Description	Send email verification link to user's email address
+// @Tags			Authentication
+// @Accept			json
+// @Produce			json
+// @Param			body	body	dto.InitiateEmailVerificationRequest	true	"Email verification request"
+// @Success		200	{object}	apputils.BaseResponse
+// @Failure		400	{object}	apputils.BaseResponse
+// @Failure		404	{object}	apputils.BaseResponse
+// @Failure		500	{object}	apputils.BaseResponse
+// @Router			/api/v1/auth/verification/email/initiate [post]
 func (h *AuthHandler) InitiateEmailVerification(c *fiber.Ctx) error {
 	req := c.Locals(constants.RequestBodyJSONKey).(*dto.InitiateEmailVerificationRequest)
 
@@ -62,6 +74,18 @@ func (h *AuthHandler) InitiateEmailVerification(c *fiber.Ctx) error {
 	}))
 }
 
+// ValidateEmailVerification godoc
+// @Summary		Validate Email Verification
+// @Description	Validate email verification token and mark email as verified
+// @Tags			Authentication
+// @Accept			json
+// @Produce			json
+// @Param			body	body	dto.ValidateEmailVerificationRequest	true	"Email verification token"
+// @Success		200	{object}	apputils.BaseResponse
+// @Failure		400	{object}	apputils.BaseResponse
+// @Failure		401	{object}	apputils.BaseResponse
+// @Failure		500	{object}	apputils.BaseResponse
+// @Router			/api/v1/auth/verification/email/validate [post]
 func (h *AuthHandler) ValidateEmailVerification(c *fiber.Ctx) error {
 	req := c.Locals(constants.RequestBodyJSONKey).(*dto.ValidateEmailVerificationRequest)
 
@@ -75,6 +99,18 @@ func (h *AuthHandler) ValidateEmailVerification(c *fiber.Ctx) error {
 	}))
 }
 
+// SignInWithEmail godoc
+// @Summary		Sign In with Email
+// @Description	Authenticate user with email and password, returns access and refresh tokens
+// @Tags			Authentication
+// @Accept			json
+// @Produce			json
+// @Param			body	body	dto.SignInWithEmailRequest	true	"Sign in credentials"
+// @Success		200	{object}	apputils.BaseResponse{data=authEntity.AuthenticatedUser}
+// @Failure		400	{object}	apputils.BaseResponse
+// @Failure		401	{object}	apputils.BaseResponse
+// @Failure		500	{object}	apputils.BaseResponse
+// @Router			/api/v1/auth/signin/email [post]
 func (h *AuthHandler) SignInWithEmail(c *fiber.Ctx) error {
 	req := c.Locals(constants.RequestBodyJSONKey).(*dto.SignInWithEmailRequest)
 
@@ -89,6 +125,20 @@ func (h *AuthHandler) SignInWithEmail(c *fiber.Ctx) error {
 	}))
 }
 
+// SetUserPassword godoc
+// @Summary		Set User Password
+// @Description	Set password for a user account (requires authentication)
+// @Tags			Authentication
+// @Accept			json
+// @Produce			json
+// @Security		BearerAuth
+// @Param			body	body	dto.SetUserPasswordRequest	true	"Password setup request"
+// @Success		200	{object}	apputils.BaseResponse
+// @Failure		400	{object}	apputils.BaseResponse
+// @Failure		401	{object}	apputils.BaseResponse
+// @Failure		404	{object}	apputils.BaseResponse
+// @Failure		500	{object}	apputils.BaseResponse
+// @Router			/api/v1/auth/password [post]
 func (h *AuthHandler) SetUserPassword(c *fiber.Ctx) error {
 	req := c.Locals(constants.RequestBodyJSONKey).(*dto.SetUserPasswordRequest)
 
@@ -109,6 +159,21 @@ func (h *AuthHandler) SetUserPassword(c *fiber.Ctx) error {
 	}))
 }
 
+// UpdateUserPassword godoc
+// @Summary		Update User Password
+// @Description	Update password for a specific user (requires authentication)
+// @Tags			Authentication
+// @Accept			json
+// @Produce			json
+// @Security		BearerAuth
+// @Param			userId	path	string	true	"User ID (UUID)"
+// @Param			body	body	dto.UpdatePasswordRequest	true	"Password update request"
+// @Success		200	{object}	apputils.BaseResponse
+// @Failure		400	{object}	apputils.BaseResponse
+// @Failure		401	{object}	apputils.BaseResponse
+// @Failure		404	{object}	apputils.BaseResponse
+// @Failure		500	{object}	apputils.BaseResponse
+// @Router			/api/v1/auth/password/{userId} [patch]
 func (h *AuthHandler) UpdateUserPassword(c *fiber.Ctx) error {
 	req := c.Locals(constants.RequestBodyJSONKey).(*dto.UpdatePasswordRequest)
 
