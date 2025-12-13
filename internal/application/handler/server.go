@@ -119,8 +119,13 @@ func (h *ServerHandler) OpenAPISpecHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "API Docs are disabled")
 	}
 
-	spec := docs.SwaggerInfo.ReadDoc()
-	return c.Type("json").SendString(spec)
+	specByte, err := docs.SwaggerFS.ReadFile("swagger.json")
+	if err != nil {
+		h.Logger.Error("failed to read swagger.json file", "err", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	return c.Send(specByte)
 }
 
 func (h *ServerHandler) APIDocsHandler(c *fiber.Ctx) error {
