@@ -1,0 +1,12 @@
+# .moon/workspace.yml
+$schema: './cache/schemas/workspace.json'
+
+projects:
+  - '.'
+
+vcs:
+  manager: 'git'
+  defaultBranch: 'develop'
+
+runner:
+  archivableTargets: ['build', 'test']

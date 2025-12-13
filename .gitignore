@@ -7,3 +7,6 @@ docs/swagger.yaml
 release/
 temp/
 tmp/
+# moon
+.moon/cache
+.moon/docker
