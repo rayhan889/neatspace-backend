@@ -45,15 +45,15 @@ func (h *ServerHandler) RegisterRoutes(fiberApp *fiber.App) {
 
 	// })
 
+	// Serve index.html for root and all non-static paths
+	fiberApp.Get("/", h.RootHandler(staticFS))
+	fiberApp.All("/*", h.RootHandler(staticFS))
+
 	// health check route (allow direct hit instead of redirect to SPA)
 	fiberApp.Get("/healthz", h.HealthCheckHandler)
 	// API docs + OpenAPI spec
 	fiberApp.Get("/api-docs", h.APIDocsHandler)
 	fiberApp.Get("/api/openapi.json", h.OpenAPISpecHandler)
-
-	// Serve index.html for root and all non-static paths
-	fiberApp.Get("/", h.RootHandler(staticFS))
-	fiberApp.All("/*", h.RootHandler(staticFS))
 }
 
 func (h *ServerHandler) RootHandler(staticFS http.FileSystem) fiber.Handler {
@@ -119,8 +119,13 @@ func (h *ServerHandler) OpenAPISpecHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "API Docs are disabled")
 	}
 
-	spec := docs.SwaggerInfo.ReadDoc()
-	return c.Type("json").SendString(spec)
+	specByte, err := docs.SwaggerFS.ReadFile("swagger.json")
+	if err != nil {
+		h.Logger.Error("failed to read swagger.json file", "err", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	return c.Send(specByte)
 }
 
 func (h *ServerHandler) APIDocsHandler(c *fiber.Ctx) error {
