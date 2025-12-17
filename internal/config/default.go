@@ -11,7 +11,7 @@ func DefaultConfig() Config {
 			ServerPort:         8000,
 			CORSOrigins:        []string{"*"},
 			CORSMaxAge:         300,
-			CORSCredentials:    true,
+			CORSCredentials:    false,
 			RateLimitEnabled:   true,
 			RateLimitRequests:  20,
 			RateLimitBurstSize: 60,

@@ -118,8 +118,8 @@ tasks:
 
   docker-build:
     script: |
-      DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
-      DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
+      DOCKER_IMAGE="$(jq -r .name <./package.json)-$project" \
+      DOCKER_IMAGE_VERSION="$(jq -r .version <./package.json)" \
       && docker build -f $projectRoot/Dockerfile . -t $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION \
       && docker image list --filter reference=$DOCKER_IMAGE\*
     options:
@@ -133,12 +133,12 @@ tasks:
 
   docker-run:
     script: |
-      DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
-      DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
+      DOCKER_IMAGE="$(jq -r .name <./package.json)-$project" \
+      DOCKER_IMAGE_VERSION="$(jq -r .version <./package.json)" \
       && docker run --network=host --rm -it --env-file $projectRoot/.env \
         --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
-      mergeEnv: replace
+      mergeEnv: replace 
       outputStyle: buffer-only-failure
       runFromWorkspaceRoot: true
       interactive: false

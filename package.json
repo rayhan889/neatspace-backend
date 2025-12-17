@@ -1,0 +1,6 @@
+{
+    "name": "neatspace",
+    "version": "1.0.0",
+    "description": "Neatspace backend application",
+    "private": true
+}
