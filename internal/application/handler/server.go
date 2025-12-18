@@ -136,9 +136,14 @@ func (h *ServerHandler) APIDocsHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "API Docs are disabled")
 	}
 
-	scheme := "http"
-	if c.Context().IsTLS() {
-		scheme = "https"
+	// Detect scheme from X-Forwarded-Proto (set by Cloud Run/reverse proxies) or fallback to TLS check
+	scheme := c.Get("X-Forwarded-Proto")
+	if scheme == "" {
+		if c.Context().IsTLS() {
+			scheme = "https"
+		} else {
+			scheme = "http"
+		}
 	}
 	specURL := fmt.Sprintf("%s://%s/api/openapi.json", scheme, c.Hostname())
 

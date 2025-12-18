@@ -21,7 +21,7 @@ func SecurityHeadersMiddleware() fiber.Handler {
 				"style-src 'self' 'unsafe-inline'; "+
 				"img-src 'self' data:; "+
 				"font-src 'self' https://fonts.scalar.com; "+
-				"connect-src 'self'; "+
+				"connect-src 'self' https:; "+
 				"frame-ancestors 'none'")
 
 		return c.Next()

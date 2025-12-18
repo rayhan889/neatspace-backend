@@ -58,7 +58,9 @@ jobs:
             DATABASE_URL=${{ secrets.DB_URL }}
 
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
-            APP_MODE=production
+            APP_BASE_URL=${{ secrets.APP_BASE_URL }}
+            APP_MODE=production 
+            ENABLE_API_DOCS=true
             LOG_LEVEL=info
             SERVER_HOST=0.0.0.0
             SERVER_PORT=8080
