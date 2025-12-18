@@ -55,5 +55,19 @@ jobs:
           # You can remove this line later for internal APIs
           flags: '--allow-unauthenticated'
           env_vars: |
-            # We inject the whole connection string as one variable
             DATABASE_URL=${{ secrets.DB_URL }}
+
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            APP_MODE=production
+            LOG_LEVEL=info
+            SERVER_HOST=0.0.0.0
+            SERVER_PORT=8080
+
+            CORS_CREDENTIALS=true
+            SMTP_HOST=smtp.gmail.com
+            SMTP_PORT=587
+            SMTP_SECURE=false
+            SMTP_SENDER_NAME=${{ secrets.SMTP_SENDER_NAME }}
+            SMTP_SENDER_EMAIL=${{ secrets.SMTP_SENDER_EMAIL }}
+            SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
+            SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
